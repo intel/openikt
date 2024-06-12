@@ -253,7 +253,7 @@ class QuiltDiffDetailView(APIView):
         rdps = RangeDiffPatch.objects.select_related(
             'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_CMCO).order_by('pr')
         if rdps:
-            both_chanege_sheet = wb.add_worksheet(name='both change only')
+            both_chanege_sheet = wb.add_worksheet(name='commit message change only')
             self.write_data_excel(both_chanege_sheet, wb, title_style, rdps, both=False)
         
         wb.close()
