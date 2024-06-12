@@ -1,0 +1,17 @@
+.ikt-table.el-table {
+  th,
+  td {
+    padding: 0;
+  }
+
+  thead {
+    tr th {
+      color: #606266 !important;
+      background-color: rgba(191, 219, 254, 0.3) !important;
+
+      .cell {
+        word-break: break-word;
+      }
+    }
+  }
+}
