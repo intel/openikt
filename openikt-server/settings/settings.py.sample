@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'openikt',
     'app_diff',
+    'app_ii',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
