@@ -12,6 +12,7 @@ from .methods import email_display
 from lib.ourxlsx import NewXlsx
 from io import BytesIO
 from django.http import HttpResponse
+from lib.jenkinswrapper import JenkinsWrapper
 
 
 class GetRepositoryView(APIView):
@@ -418,3 +419,61 @@ class RangeDiffPatchTypeView(APIView):
             {"label": i[1], "value": i[0]} for i in RangeDiffPatch.TYPE_CHOICES
         ]
         return Response(data=format_resp(data=diffPatchType), status=status.HTTP_200_OK)
+
+
+class RangeDiffTypeView(APIView):
+    """
+    Summary:
+        get quilt diff  type api view
+
+    Return:
+        the list of quilt diff type data
+    """
+
+    def get(self, request):
+        """get diff patch type api"""
+        diffType = [
+            {"label": i[1], "value": i[0]} for i in RangeDiff.TYPE_CHOICES
+        ]
+        return Response(data=format_resp(data=diffType), status=status.HTTP_200_OK)
+
+
+class TriggerDiffJob(APIView):
+    """
+    Summary:
+        trigger create diff job
+    """
+
+    @staticmethod
+    def extra_repo(repo):
+        protocol, rep = repo.split('://')
+        first_index = rep.find('/')
+        host = rep[0:first_index]
+        project = rep[first_index + 1:]
+
+        is_exist = Repository.objects.filter(project=project)
+        if not is_exist:
+            logging.info('create new repo to DB: %s' % repo)
+            repo_obj = Repository.objects.create(
+                protocol = protocol,
+                host = host,
+                project = project
+            )
+        return None
+
+    def post(self, request, *args, **kwargs):
+        form = request.data
+        data = {
+            'repo_url_from': form['repositoryFrom'],
+            'repo_url_to': form['repositoryTo'],
+            'ref_from': form['refFrom'],
+            'ref_to': form['refTo'],
+            'base_from': form['baseFrom'],
+            'base_to': form['baseTo'],
+            'diff_type': form['diffType']
+        }
+        self.extra_repo(form['repositoryFrom'])
+        self.extra_repo(form['repositoryTo'])
+        job = JenkinsWrapper(server_name='cje_jenkins')
+        job.trigger_job(name='create-diff', group='OpenIKT', data=data)
+        return Response(data=format_resp(data={}), status=status.HTTP_200_OK)

@@ -89,3 +89,54 @@ def cmd_pipe(command):
 def hash_str(s, n=40):
     h = hashlib.sha256(s.encode('utf-8')).hexdigest()
     return h[:n] if n>0 else h
+
+def requests_retry_session(retries=10,
+                           backoff_factor=0.3,
+                           status_forcelist=(401, 500, 502, 504),
+                           session=None):
+    session = session or requests.Session()
+    retry = Retry(total=retries,
+                  read=retries,
+                  connect=retries,
+                  backoff_factor=backoff_factor,
+                  status_forcelist=status_forcelist)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+def requests_get(url, q_data=None, auth=None):
+    resp = None
+    logger.debug("Query URL: %s" % url)
+    try:
+        resp = requests_retry_session().get(url, auth=auth, verify=False)
+        logger.debug(resp.text)
+        if resp.status_code != requests.codes.ok:
+            logger.error(resp.reason)
+            logger.error(resp.text)
+            sys.exit(resp.status_code)
+    except Exception as e:
+        logger.error(e)
+        logger.error("requests.get() failed after retries: %s, terminated" % \
+                       e.__class__.__name__)
+        sys.exit(500)
+
+    return resp.text
+
+
+def requests_post(url, data, headers, auth, verify=False):
+    resp = None
+    logger.debug("Post URL: %s" % url)
+    try:
+        resp = requests_retry_session().post(url,
+                                             data=data,
+                                             headers=headers,
+                                             auth=auth,
+                                             verify=verify)
+    except Exception as e:
+        logger.error(e)
+        logger.error("requests.post() failed: %s, terminated" % \
+                       e.__class__.__name__)
+        sys.exit(500)
+
+    return resp
