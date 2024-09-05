@@ -448,8 +448,10 @@ class TriggerDiffJob(APIView):
     def extra_repo(repo):
         protocol, rep = repo.split('://')
         first_index = rep.find('/')
+        last_index = rep.rfind('/')
         host = rep[0:first_index]
         project = rep[first_index + 1:]
+        name = rep[last_index + 1:]
 
         is_exist = Repository.objects.filter(project=project)
         if not is_exist:
@@ -457,7 +459,8 @@ class TriggerDiffJob(APIView):
             repo_obj = Repository.objects.create(
                 protocol = protocol,
                 host = host,
-                project = project
+                project = project,
+                name = name
             )
         return None
 
