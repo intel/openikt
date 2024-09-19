@@ -96,6 +96,9 @@ class PKGContributor(Model):
     contributor = ForeignKey(Contributor, on_delete=CASCADE)
     # contributor type
     ctype = IntegerField(choices=TYPE_CHOICES, default=TYPE_MAINTAINER)
+    
+    def __str__(self):
+        return "%s ( %s )" % (self.contributor.name, self.get_ctype_display())
 
 
 class PKGExtraInfo(Model):
@@ -168,7 +171,7 @@ class ImageDiff(Model):
         unique_together = ('img_a', 'img_b')
 
     def __str__(self):
-        return "%s -- %s" % (img_a.name, img_b.name)
+        return "%s -- %s" % (self.img_a.name, self.img_b.name)
 
 
 class ImageDiffPKG(Model):
