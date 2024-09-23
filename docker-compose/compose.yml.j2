@@ -1,0 +1,77 @@
+services:
+  openikt-db:
+    image: public.ecr.aws/docker/library/postgres:13.3
+    hostname: openikt-db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_PASSWORD={{ password }}
+      - POSTGRES_USER=openikt_user
+      - POSTGRES_DB=openikt_db
+
+  openikt-server:
+    depends_on:
+      - openikt-db
+    build:
+      context: ..
+      args:
+        - http_proxy={{ http_proxy }}
+        - https_proxy={{ https_proxy }}
+        - no_proxy={{ no_proxy }}
+        - socks_proxy={{ socks_proxy }}
+      dockerfile: docker-compose/Dockerfile.server
+    image: openikt-server
+    hostname: openikt-server
+    volumes:
+     - server-log:/opt/logs:rw
+    environment:
+      - POSTGRES_PASSWORD={{ password }}
+      - POSTGRES_USER=openikt_user
+      - POSTGRES_DB=openikt_db
+    command: "/bin/sh -c 'cd openikt-server; uwsgi --ini uwsgi.ini'"
+    restart: unless-stopped
+    container_name: openikt-server
+
+  openikt-web:
+    depends_on:
+      - openikt-server
+    build:
+      context: ..
+      args:
+        - http_proxy={{ http_proxy }}
+        - https_proxy={{ https_proxy }}
+        - no_proxy={{ no_proxy }}
+        - socks_proxy={{ socks_proxy }}
+      dockerfile: docker-compose/Dockerfile.web
+    image: openikt-web
+    hostname: openikt-web
+    ports:
+     - "{{ port }}:80"
+     {%- if enable_https %}
+     - "{{ https_port }}:443"
+     {%- endif %}
+    volumes:
+     - web-log:/opt/logs:rw
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    restart: unless-stopped
+    container_name: openikt-web
+
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: {{ db_data_dir }}
+      o: bind
+  server-log:
+    driver: local
+    driver_opts:
+      type: none
+      device: {{ server_log_dir }}
+      o: bind
+  web-log:
+    driver: local
+    driver_opts:
+      type: none
+      device: {{ web_log_dir }}
+      o: bind

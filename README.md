@@ -12,7 +12,7 @@ This is a repository that contains all the code for OpenIKT(Open Inter kernel To
 
 > Ubuntu 20.04 default install python3.8. if you didn't have, please visit: https://www.python.org/ install.
 
-​	Recommended to use a virtual environment
+	Recommended to use a virtual environment
 
 ```shell
 # Install dependency packages
@@ -166,6 +166,10 @@ server {
 ```
 
 
+# Setup with Docker Compose
+
+You can setup all the Openikt services with docker-compose/setup.py,
+please refer docker-compose/README.md for more information.
 
 
 
