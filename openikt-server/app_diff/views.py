@@ -462,13 +462,14 @@ class TriggerDiffJob(APIView):
                 project = project,
                 name = name
             )
+            repo_obj.save()
         return None
 
     def post(self, request, *args, **kwargs):
         form = request.data
         data = {
-            'repo_url_from': form['repositoryFrom'],
-            'repo_url_to': form['repositoryTo'],
+            'repo_from': form['repositoryFrom'],
+            'repo_to': form['repositoryTo'],
             'ref_from': form['refFrom'],
             'ref_to': form['refTo'],
             'base_from': form['baseFrom'],

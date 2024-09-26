@@ -6,6 +6,7 @@ import json
 import time
 import socket
 import logging
+import requests
 from lib.utils import requests_get, requests_post
 from lib.jobwrapper import BUILD_SERVERS, JobWrapper, ServerNotFound
 
@@ -65,11 +66,13 @@ class JenkinsWrapper(JobWrapper):
         self.auth = (self.server_info['user'], self.server_info['pass'],)
 
         # retrieve the crubm token
-        result = requests_get('/'.join((
+        result = requests.request("GET", '/'.join((
             self.server_url,
             'crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
         )), auth=self.auth)
-        csrf_token_list = result.split(':')
+
+        result_text = result.text
+        csrf_token_list = result_text.split(':')
         self.post_headers = {'cache-control': 'no-cache',
                              'content-type': 'application/x-www-form-urlencoded',
                              csrf_token_list[0]: csrf_token_list[1]}

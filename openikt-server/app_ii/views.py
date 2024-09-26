@@ -75,6 +75,23 @@ class OSListView(APIView):
         return Response(data=format_resp(data=osType), status=status.HTTP_200_OK)
 
 
+class PKGTypesView(APIView):
+    """
+    Summary:
+        get os image type api view
+
+    Return:
+        the list of os image type data
+    """
+
+    def get(self, request):
+        """get package type api"""
+        pkgType = [
+            {"label": i[1], "value": i[0]} for i in PKGRelation.TYPE_CHOICES
+        ]
+        return Response(data=format_resp(data=pkgType), status=status.HTTP_200_OK)
+
+
 class ImportImageView(APIView):
     """
     Summary:
@@ -95,7 +112,7 @@ class ImportImageView(APIView):
         add a new os image
         '''
         if img.get('isImport'):
-            values = img.get('isImport')
+            values = img.get('value')
             raw_data = values.get('rawData')
             os_img_obj = OSImage(
                 os = values.get('os'),
@@ -159,11 +176,17 @@ class ImageDiffPackage(APIView):
     def get(self, request, *args, **kwargs):
         diff_id = request.query_params.get('DiffId')
         package_name = request.query_params.get('packageName')
+        package_type = request.query_params.get('diffType')
+
         query = Q(imgdiff_id=diff_id)
         if package_name:
             query_p = Q(pkg_a__name__icontains=package_name) | Q(pkg_b__name__icontains=package_name)
             query = query & query_p
-        image_diff_pag = ImageDiffPKG.objects.filter(query).order_by('pkg_a__name')
+        if package_type:
+            pkg_t = package_type.split(',')
+            print(pkg_t)
+            query = query & Q(pkgtype__in=pkg_t)
+        image_diff_pag = ImageDiffPKG.objects.filter(query).order_by('pkgtype', 'pkg_a__name')
         ser = ImageDiffPkgSerializers(instance=image_diff_pag, many=True)
         return Response(data=format_resp(data={"tableData": ser.data}), status=status.HTTP_200_OK)
 
