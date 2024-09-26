@@ -19,19 +19,52 @@
           <router-link to="/quiltdiff">Quilt Diff</router-link>
         </el-menu-item>
 
+        <el-menu-item index="/image-comparison">
+          <router-link to="/image-comparison">Image Comparison</router-link>
+        </el-menu-item>
+
         <el-menu-item index="/help">
           <router-link to="/help">Help</router-link>
         </el-menu-item>
       </el-menu>
     </div>
 
-    <div class="right-area"></div>
+    <div class="right-area">
+      <div
+        style="cursor: pointer"
+        :style="{ lineHeight: isInHomePage ? '60px' : '40px' }"
+        :title="isLogin ? 'Log out' : 'Log in'"
+        @click="logInOrOut">
+        <i
+          v-if="isLogin"
+          class="iconfont icon-yonghutouxiang"
+          style="font-size: 20px; color: #86efac"></i>
+        <i
+          v-else
+          class="el-icon-user-solid"
+          style="font-size: 20px; color: #fff"></i>
+        <span
+          v-if="isLogin"
+          style="font-size: 16px; margin-left: 5px; color: #fff">
+          {{ username }}
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import Cookies from 'js-cookie'
+import { logoutAPI } from '../../../services/api/auth'
+
 export default {
   name: 'IktNavigation',
+  data() {
+    return {
+      isLogin: false,
+      username: ''
+    }
+  },
   computed: {
     defaultActiveIndex() {
       const { path, meta } = this.$route
@@ -41,6 +74,18 @@ export default {
     isInHomePage() {
       return this.$route.path === '/'
     }
+  },
+  methods: {
+    logInOrOut() {
+      if (this.isLogin) {
+        logoutAPI()
+      }
+      this.$router.push('/welcome')
+    }
+  },
+  created() {
+    this.username = Cookies.get('username')
+    this.isLogin = !!this.username
   }
 }
 </script>

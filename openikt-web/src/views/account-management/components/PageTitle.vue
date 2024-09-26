@@ -1,5 +1,7 @@
 <template>
-  <h1 class="page-title">OpenIKT</h1>
+  <div>
+    <h1 class="page-title">OpenIKT</h1>
+  </div>
 </template>
 
 <script>
@@ -46,7 +48,8 @@ export default {
   }
 
   &.ended::after {
-    animation: cursor 1s steps(2, jump-none) infinite;
+    // animation: cursor 1s steps(2, jump-none) infinite;
+    display: none;
   }
 
   ::v-deep span {

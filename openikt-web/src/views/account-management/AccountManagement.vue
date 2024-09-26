@@ -1,10 +1,9 @@
 <template>
   <div class="account-management-component">
-    <page-title></page-title>
-
     <div class="box">
       <div class="form-container log-in-container" id="log-in-container">
         <form>
+          <page-title></page-title>
           <h2 class="title">Login Account</h2>
           <input
             class="form-input"
@@ -30,7 +29,7 @@
               @click="logInShowPassword = !logInShowPassword"></i>
           </div>
 
-          <a class="forget-password-link">Forget Password?</a>
+          <!-- <a class="forget-password-link">Forget Password?</a> -->
           <button class="button" type="button" @click="handleLogIn">
             Log In
           </button>
@@ -131,33 +130,28 @@ export default {
         this.logInForm.username,
         this.logInForm.password
       )
-      if (code === 200) {
-        this.$message({
-          message: 'ok',
-          type: 'success'
-        })
+
+      if (code === 0) {
+        this.$message.success('Login successful')
+        this.$router.push('/quiltdiff')
       }
     },
     async handleSignUp() {
       if (
         !this.signUpForm.username ||
-        !this.logInForm.password ||
+        !this.signUpForm.password ||
         !this.signUpForm.email
       ) {
         return
       }
 
-      const { code } = await signUpAPI(
+      const { message } = await signUpAPI(
         this.signUpForm.username,
         this.signUpForm.password,
         this.signUpForm.email
       )
-      if (code === 200) {
-        this.$message({
-          message: 'ok',
-          type: 'success'
-        })
-      }
+
+      this.$message.success(message)
     },
     switchAnimation() {
       const switchContainerEl = document.getElementById('switch-container')
@@ -183,12 +177,9 @@ export default {
           formItemsAllEl[i].classList.toggle('is-txl')
         }
       }
-
-      window.addEventListener('load', () => {
-        for (let i = 0; i < switchBtn.length; i++) {
-          switchBtn[i].addEventListener('click', changeForm)
-        }
-      })
+      for (let i = 0; i < switchBtn.length; i++) {
+        switchBtn[i].addEventListener('click', changeForm)
+      }
     }
   },
   mounted() {
@@ -268,30 +259,6 @@ export default {
   border-radius: 12px;
   overflow: hidden;
 }
-
-/* @media (max-width: 1200px) {
-  .box {
-    transform: scale(0.7);
-  }
-}
-
-@media (max-width: 1000px) {
-  .box {
-    transform: scale(0.6);
-  }
-}
-
-@media (max-width: 800px) {
-  .box {
-    transform: scale(0.5);
-  }
-}
-
-@media (max-width: 600px) {
-  .box {
-    transform: scale(0.4);
-  }
-} */
 
 .form-container {
   display: flex;

@@ -45,3 +45,16 @@ export function getBinaryExportDataAPI(data) {
     }
   })
 }
+
+export function getQuiltDiffTypeAPI() {
+  return iktRequest.get({
+    url: '/openikt/app_diff/diff_type'
+  })
+}
+
+export function createQuiltDiffAPI(data) {
+  return iktRequest.post({
+    url: '/openikt/app_diff/create',
+    data
+  })
+}

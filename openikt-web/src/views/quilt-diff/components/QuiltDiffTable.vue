@@ -37,15 +37,12 @@
         </el-col>
 
         <el-col :span="8" style="text-align: right">
-          <el-popconfirm
-            title="Sorry, feature is under development."
-            confirm-button-text="contact admin"
-            cancel-button-text="cancel"
-            @confirm="handleClickCreate">
-            <el-button slot="reference" type="success" size="small">
-              Create
-            </el-button>
-          </el-popconfirm>
+          <el-button
+            type="success"
+            size="small"
+            @click="openCreateQuiltDiffDialog">
+            Create
+          </el-button>
         </el-col>
       </el-row>
     </el-form>
@@ -148,10 +145,16 @@
         min-width="120"
         show-overflow-tooltip></el-table-column>
     </el-table>
+
+    <create-quilt-diff
+      :dialog-visible.sync="createQuiltDiffDialogVisible"></create-quilt-diff>
   </div>
 </template>
 
 <script>
+import Cookies from 'js-cookie'
+import CreateQuiltDiff from './CreateQuiltDiff.vue'
+
 import {
   getRepositoryListAPI,
   getOverviewTableDataAPI
@@ -159,8 +162,12 @@ import {
 
 export default {
   name: 'QuiltDiffTable',
+  components: {
+    CreateQuiltDiff
+  },
   data() {
     return {
+      createQuiltDiffDialogVisible: false,
       searchCondition: {
         repositoryId: '',
         diffTagId: ''
@@ -172,6 +179,14 @@ export default {
     }
   },
   methods: {
+    openCreateQuiltDiffDialog() {
+      if (!Cookies.get('username')) {
+        this.$router.push('/welcome')
+        return
+      }
+
+      this.createQuiltDiffDialogVisible = true
+    },
     async copyToClipboard(text) {
       if (!text) return
 
