@@ -128,7 +128,9 @@ def main(args):
             logger.info("The image diff already exists, going to overwrite it")
             ImageDiffPKG.objects.filter(imgdiff_id=idiff.id).delete()
         else:
-            assert False, "The image diff already exists, skipped"
+            #assert False, "The image diff already exists, skipped"
+            logger.info("The image diff already exists, skipped")
+            sys.exit(0)
     else:
         idiff = ImageDiff(img_a_id=imga.id, img_b_id=imgb.id)
         idiff.save()
