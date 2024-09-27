@@ -6,6 +6,7 @@ import os
 import argparse
 import subprocess
 import importlib
+import time
 
 
 def main():
@@ -175,6 +176,9 @@ def install(args):
     if return_code != 0:
         print('make migrations failed!')
         sys.exit(1)
+    else:
+        print('make migrations sucess and wait for postgres ready ...')
+        time.sleep(10)
     return_code = subprocess.call(['docker', 'compose', 'exec', '-T', 'openikt-server', 
                                    'python3', '/opt/openikt-server/manage.py', 'migrate'], shell=False)
     if return_code != 0:

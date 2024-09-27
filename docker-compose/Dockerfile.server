@@ -19,7 +19,7 @@ ADD openikt-server/requirements.txt ./
 RUN pip install -r ./requirements.txt
 ADD openikt-server ./openikt-server/
 ADD docker-compose/uwsgi.ini ./openikt-server/
-ADD docker-compose/settings.py.sample ./openikt-server/settings/settings.py
+ADD openikt-server/settings/settings.py.sample ./openikt-server/settings/settings.py
 ENV https_proxy=
 ENV http_proxy=
 

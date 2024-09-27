@@ -17,7 +17,7 @@ pipeline {
         all_proxy='http://my-proxy'
     }
     parameters {
-        string(name: 'branch', description: 'branch', defaultValue: 'wxs/ii')
+        string(name: 'branch', description: 'branch', defaultValue: 'master')
         string(name: 'img_a', description: '', defaultValue: '')
         string(name: 'img_b', description: '', defaultValue: '')
         booleanParam(name: 'rebuildImage', description: 'rebuild docker image', defaultValue: false)

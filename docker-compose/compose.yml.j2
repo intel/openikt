@@ -25,9 +25,10 @@ services:
     volumes:
      - server-log:/opt/logs:rw
     environment:
-      - POSTGRES_PASSWORD={{ password }}
-      - POSTGRES_USER=openikt_user
-      - POSTGRES_DB=openikt_db
+      - DATABASE_PASSWORD={{ password }}
+      - DATABASE_USER=openikt_user
+      - DATABASE_NAME=openikt_db
+      - DATABASE_HOST=openikt-db
     command: "/bin/sh -c 'cd openikt-server; uwsgi --ini uwsgi.ini'"
     restart: unless-stopped
     container_name: openikt-server

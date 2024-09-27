@@ -20,7 +20,6 @@ docker-compose/
 ├── nginx-web.conf.j2 # The Jinja2 template file of nginx-web.conf, which is used  
                       # for openikt-web, change it if necessary.  
 ├── README # The documentation file  
-├── settings.py.sample # The Django project settings file for openikt-server   
 ├── setup.py # The setup script  
 └── uwsgi.ini # The uWSGI configuration file for starting the Django project  
               # in the openikt-server container  

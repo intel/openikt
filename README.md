@@ -168,9 +168,11 @@ server {
 
 # Setup with Docker Compose
 
-You can setup all the Openikt services with docker-compose/setup.py,
-please refer docker-compose/README.md for more information.
+You can setup or update Openikt services with docker-compose/setup.py,
+please refer [docker-compose/README.md](docker-compose/README.md) for more information.
 
+setup.py can't deploy the app app_ii completely yet, there's no Jenkins server deployment, therefore Image Comparison will not work correctly.
+You can deploy Jenkins manually and create a pipeline job named image-inspector with [openikt-server/app_ii/jenkinsfile](openikt-server/app_ii/jenkinsfile).
 
 
 # Document 
