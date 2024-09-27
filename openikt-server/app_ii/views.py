@@ -36,7 +36,7 @@ class GetOSImageDataView(APIView):
         image list
     """
     def get(self, request):
-        os_image = OSImage.objects.all()
+        os_image = OSImage.objects.all().order_by('-created')
         ser = OSImageListSerializers(instance=os_image, many=True)
         return Response(data=format_resp(data=ser.data), status=status.HTTP_200_OK)
 
@@ -54,7 +54,7 @@ class GetOSImageListView(APIView):
         query = Q()
         if imageId:
             query = query & Q(id=imageId)
-        os_image = ImageDiff.objects.select_related("img_a", "img_b")
+        os_image = ImageDiff.objects.select_related("img_a", "img_b").order_by('-created')
         images = os_image.filter(query)
         ser = ImageListSerializers(instance=images, many=True)
         return Response(data=format_resp(data={"tableData": ser.data}), status=status.HTTP_200_OK)
@@ -89,7 +89,7 @@ class PKGTypesView(APIView):
     def get(self, request):
         """get package type api"""
         pkgType = [
-            {"label": i[1], "value": i[0]} for i in PKGRelation.TYPE_CHOICES
+            {"label": i[1], "value": i[0]} for i in ImageDiffPKG.TYPE_CHOICES
         ]
         return Response(data=format_resp(data=pkgType), status=status.HTTP_200_OK)
 
@@ -212,9 +212,8 @@ class ImageDiffPackage(APIView):
             query = query & query_p
         if package_type:
             pkg_t = package_type.split(',')
-            print(pkg_t)
             query = query & Q(pkgtype__in=pkg_t)
-        image_diff_pag = ImageDiffPKG.objects.filter(query).order_by('pkgtype', 'pkg_a__name')
+        image_diff_pag = ImageDiffPKG.objects.filter(query).order_by('pkgtype', 'pkg_a__name', 'pkg_b__name')
         ser = ImageDiffPkgSerializers(instance=image_diff_pag, many=True)
         return Response(data=format_resp(data={"tableData": ser.data}), status=status.HTTP_200_OK)
 
