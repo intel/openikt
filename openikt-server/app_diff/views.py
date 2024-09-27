@@ -200,8 +200,8 @@ class QuiltDiffDetailView(APIView):
         ref_a = request.data.get('refA')
         ref_b = request.data.get('refB')
         rdps = RangeDiffPatch.objects.select_related(
-            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_NEW).order_by('pr')
-        
+            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_REMOVED).order_by('pr')
+        ref_a_b = {"ref A": ref_a, "ref B": ref_b}
         # create excel
         output = BytesIO()
         wb = NewXlsx(
@@ -227,13 +227,31 @@ class QuiltDiffDetailView(APIView):
              'bg_color': '#F0F8FF',
              }
         )
-        # crete sheet only A
+        # create sheet Explanation
+        explanat = wb.add_worksheet(name='Summary')
+        explant_sheet_tree = explanat.title_tree
+        explain = explant_sheet_tree.add_child(
+            nid='Summary',
+            data=wb.get_tree_node_format_data(
+                style=title_style,
+                width=80,
+                abs_width=True
+            )
+        )
+        for k, v in ref_a_b.items():
+            explain.data['column_cells_list'].append(
+                wb.get_tree_node_format_cell(
+                    value=k + ":" + v
+                    )
+                )
+        wb.write_worksheet(explanat)
+        # create sheet only A
         only_sheet_a = wb.add_worksheet(name='only ref A')
         self.write_data_excel(only_sheet_a, wb, title_style, rdps, both=False)
         
         # create sheet only b
         rdps = RangeDiffPatch.objects.select_related(
-            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_REMOVED).order_by('pr')
+            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_NEW).order_by('pr')
         only_sheet_b = wb.add_worksheet(name='only ref B')
         self.write_data_excel(only_sheet_b, wb, title_style, rdps, both=False)
         
