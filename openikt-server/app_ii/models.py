@@ -43,6 +43,7 @@ class OSImage(Model):
     url = CharField(max_length=1024, null=True, blank=True)
     created = DateTimeField(null=True, blank=True)
     raw_data = TextField(null=True, blank=True)
+    imported = BooleanField(default=False)
 
     def __str__(self):
         return self.name
