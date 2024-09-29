@@ -27,9 +27,21 @@ export function getOSListAPI() {
   })
 }
 
+export function verifyCreateImageExistAPI(imageAName, imageBName) {
+  return iktRequest.get({
+    url: `/openikt/app_ii/diff_exist?imgA=${imageAName}&imgB=${imageBName}`
+  })
+}
+
 export function verifyCreateImageNameAPI(imageName) {
   return iktRequest.get({
     url: `/openikt/app_ii/name_verify?name=${imageName}`
+  })
+}
+
+export function verifyCreateImageUrlAPI(imageUrl) {
+  return iktRequest.get({
+    url: `/openikt/app_ii/url_verify?url=${imageUrl}`
   })
 }
 
@@ -40,7 +52,7 @@ export function createImageComparisonAPI(data) {
   })
 }
 
-export function getComparisonTypeListAPI() {
+export function getPackageTypeListAPI() {
   return iktRequest.get({
     url: '/openikt/app_ii/pkg_type'
   })
@@ -48,13 +60,13 @@ export function getComparisonTypeListAPI() {
 
 export function getImageComparisonDetilsAPI(
   imageComparisonId,
-  comparisonType,
+  packageType,
   packageName
 ) {
   return iktRequest.get({
     url: `/openikt/app_ii/image_diff_pkg?DiffId=${imageComparisonId}`,
     params: {
-      diffType: comparisonType?.toString() || undefined,
+      diffType: packageType?.toString() || undefined,
       packageName: packageName || undefined
     }
   })

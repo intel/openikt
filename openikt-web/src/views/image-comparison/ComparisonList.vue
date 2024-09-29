@@ -10,7 +10,7 @@
           size="small"
           style="width: 100%"
           clearable
-          @change="getTableData">
+          @change="changeImageComparisonSelector">
           <el-option
             v-for="item of imageComparisonOptions"
             :key="item.value"
@@ -108,6 +108,11 @@ export default {
     }
   },
   methods: {
+    parsingQuery() {
+      const id = this.$route.query.id
+      id && (this.imageComparisonId = id)
+      this.getTableData(id)
+    },
     toDetailsPage(imageComparisonId, imgA, imgB) {
       window.open(
         `/openikt/image-comparison/details/${imageComparisonId}?imgA=${imgA}&imgB=${imgB}`,
@@ -122,6 +127,21 @@ export default {
 
       window.open('/openikt/image-comparison/create', '_blank')
     },
+    changeImageComparisonSelector(id) {
+      if (id) {
+        this.$router.replace({
+          query: {
+            id
+          }
+        })
+      } else {
+        this.$router.replace({
+          query: {}
+        })
+      }
+
+      this.getTableData(id)
+    },
     async getImageComparisonSelectorOptions() {
       ;({ data: this.imageComparisonOptions } =
         await getImageComparisonListAPI())
@@ -135,7 +155,7 @@ export default {
   },
   created() {
     this.getImageComparisonSelectorOptions()
-    this.getTableData()
+    this.parsingQuery()
   }
 }
 </script>

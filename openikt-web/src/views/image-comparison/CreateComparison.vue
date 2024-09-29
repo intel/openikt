@@ -39,7 +39,8 @@ import CompareItem from './components/CompareItem.vue'
 import {
   getImageListAPI,
   getOSListAPI,
-  createImageComparisonAPI
+  createImageComparisonAPI,
+  verifyCreateImageExistAPI
 } from '@/services/api/image-comparison'
 
 export default {
@@ -59,6 +60,32 @@ export default {
       const imgB = await this.$refs.imgB?.checkAndReturnImageData()
 
       if (imgA && imgB) {
+        const imgAName = imgA.isImport ? imgA.value.name : imgA.value
+        const imgBName = imgB.isImport ? imgB.value.name : imgB.value
+
+        const { is_exist, id } = await verifyCreateImageExistAPI(
+          imgAName,
+          imgBName
+        )
+
+        if (is_exist) {
+          this.$confirm('image comparison already exists', 'Tip', {
+            confirmButtonText: 'View',
+            cancelButtonText: 'Cancel',
+            type: 'warning'
+          })
+            .then(() => {
+              this.$router.push(`/image-comparison?id=${id}`)
+            })
+            .catch(() => {
+              this.$message({
+                type: 'info',
+                message: 'Cancelled'
+              })
+            })
+          return
+        }
+
         const { code } = await createImageComparisonAPI({ imgA, imgB })
 
         if (code === 0) {

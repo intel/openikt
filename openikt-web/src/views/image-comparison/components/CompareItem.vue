@@ -97,7 +97,10 @@
 </template>
 
 <script>
-import { verifyCreateImageNameAPI } from '@/services/api/image-comparison'
+import {
+  verifyCreateImageNameAPI,
+  verifyCreateImageUrlAPI
+} from '@/services/api/image-comparison'
 
 export default {
   name: 'CompareItem',
@@ -177,6 +180,16 @@ export default {
         try {
           await this.$refs.form?.validate()
 
+          if (this.type === 'url') {
+            const { valid } = await verifyCreateImageUrlAPI(this.form.url)
+
+            if (!valid) {
+              throw Error(
+                `URL (${this.form.url}) is not a valid link, please fill it in again.`
+              )
+            }
+          }
+
           const value = {
             ...this.form
           }
@@ -184,9 +197,14 @@ export default {
           imageData.value = value
           return imageData
         } catch (e) {
-          this.$message.warning(
-            `Please check the "Import ${this.placeholder}" form`
-          )
+          const errorMessage = e.message
+          if (errorMessage) {
+            this.$message.error(errorMessage)
+          } else {
+            this.$message.warning(
+              `Please check the "Import ${this.placeholder}" form`
+            )
+          }
         }
       }
     },

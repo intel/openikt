@@ -30,24 +30,29 @@
     </div>
 
     <div class="right-area">
-      <div
-        style="cursor: pointer"
-        :style="{ lineHeight: isInHomePage ? '60px' : '40px' }"
-        :title="isLogin ? 'Log out' : 'Log in'"
-        @click="logInOrOut">
-        <i
-          v-if="isLogin"
-          class="iconfont icon-yonghutouxiang"
-          style="font-size: 20px; color: #86efac"></i>
+      <div :style="{ lineHeight: isInHomePage ? '60px' : '40px' }">
+        <el-dropdown v-if="isLogin" @command="logOut">
+          <span>
+            <i
+              class="iconfont icon-yonghutouxiang"
+              style="font-size: 20px; color: #86efac"></i>
+            <span
+              v-if="isLogin"
+              style="font-size: 16px; margin-left: 5px; color: #fff">
+              {{ username }}
+            </span>
+          </span>
+
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>Log out</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <i
           v-else
           class="el-icon-user-solid"
-          style="font-size: 20px; color: #fff"></i>
-        <span
-          v-if="isLogin"
-          style="font-size: 16px; margin-left: 5px; color: #fff">
-          {{ username }}
-        </span>
+          title="Log in"
+          style="font-size: 20px; color: #fff; cursor: pointer"
+          @click="logIn"></i>
       </div>
     </div>
   </div>
@@ -76,10 +81,11 @@ export default {
     }
   },
   methods: {
-    logInOrOut() {
-      if (this.isLogin) {
-        logoutAPI()
-      }
+    logIn() {
+      this.$router.push('/welcome')
+    },
+    logOut() {
+      logoutAPI()
       this.$router.push('/welcome')
     }
   },

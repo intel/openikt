@@ -13,15 +13,15 @@
     <el-row :gutter="20" style="margin-bottom: 20px">
       <el-col :span="6">
         <el-select
-          v-model="comparisonType"
-          placeholder="Comparison Type"
+          v-model="packageType"
+          placeholder="Package Type"
           size="small"
           style="width: 100%"
           multiple
           collapse-tags
           clearable>
           <el-option
-            v-for="item of comparisonTypeOptions"
+            v-for="item of packageTypeOptions"
             :key="item.value"
             :label="item.label"
             :value="item.value"></el-option>
@@ -30,7 +30,7 @@
 
       <el-col :span="6">
         <el-input
-          v-model="packageName"
+          v-model.trim="packageName"
           placeholder="Package Name"
           size="small"
           clearable></el-input>
@@ -211,7 +211,7 @@
         <el-table-column
           prop="pkg_a"
           label="Name"
-          min-width="180"
+          width="200"
           show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.pkg_a?.name }}
@@ -221,7 +221,7 @@
         <el-table-column
           prop="pkg_a_version"
           label="Version"
-          min-width="220"
+          width="250"
           show-overflow-tooltip></el-table-column>
       </el-table-column>
 
@@ -232,7 +232,7 @@
         <el-table-column
           prop="pkg_b"
           label="Name"
-          min-width="180"
+          width="200"
           show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.pkg_b?.name }}
@@ -242,7 +242,7 @@
         <el-table-column
           prop="pkg_b_version"
           label="Version"
-          min-width="220"
+          width="250"
           show-overflow-tooltip></el-table-column>
       </el-table-column>
 
@@ -257,7 +257,7 @@
 
 <script>
 import {
-  getComparisonTypeListAPI,
+  getPackageTypeListAPI,
   getImageComparisonDetilsAPI,
   getPackageDetilsAPI
 } from '@/services/api/image-comparison'
@@ -271,8 +271,8 @@ export default {
       imgB: this.$route.query.imgB,
       isLoadingTableData: false,
       tableData: [],
-      comparisonTypeOptions: [],
-      comparisonType: [],
+      packageTypeOptions: [],
+      packageType: [],
       packageName: ''
     }
   },
@@ -300,7 +300,7 @@ export default {
       this.isLoadingTableData = true
       const { data } = await getImageComparisonDetilsAPI(
         this.id,
-        this.comparisonType,
+        this.packageType,
         this.packageName
       )
 
@@ -315,12 +315,12 @@ export default {
       this.tableData = data.tableData
       this.isLoadingTableData = false
     },
-    async getComparisonTypeList() {
-      ;({ data: this.comparisonTypeOptions } = await getComparisonTypeListAPI())
+    async getPackageTypeList() {
+      ;({ data: this.packageTypeOptions } = await getPackageTypeListAPI())
     }
   },
   created() {
-    this.getComparisonTypeList()
+    this.getPackageTypeList()
     this.getTableData()
   }
 }
