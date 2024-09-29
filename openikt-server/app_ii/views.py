@@ -8,7 +8,9 @@ from .serializers import *
 from .models import *
 from django.db.models import Q
 from lib.jenkinswrapper import JenkinsWrapper
+from lib.email import send_email
 from app_diff.methods import format_resp
+from django.contrib.auth.models import AnonymousUser
 # Create your views here.
 
 
@@ -102,10 +104,19 @@ class ImportImageView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        req_user = request.user
+        if isinstance(req_user, AnonymousUser):
+            return Response(data=format_resp(code=20001, msg='User not logged in'),
+                            status=status.HTTP_401_UNAUTHORIZED)
         img_a = self.judge_import(img=data.get('imgA'))
         img_b = self.judge_import(img=data.get('imgB'))
         job = JenkinsWrapper(server_name='cje_jenkins')
         job.trigger_job(name='image-inspector', group='OpenIKT', data={'img_a': img_a, 'img_b': img_b})
+        send_email(
+            msg=f'The Openikt image inspector: Image A: {img_a}, Image B: {img_b} job trigger successfully:<br>'
+                f'{job.job_url_base}',
+            user_email=req_user.email
+        )
         return Response(data=format_resp(data={}), status=status.HTTP_200_OK)
 
     @staticmethod
@@ -229,3 +240,18 @@ class PKGDetail(APIView):
         pkgs = Package.objects.filter(id=pkg_id)
         ser = PkgdetailSerializers(instance=pkgs, many=True)
         return Response(data=format_resp(data=ser.data), status=status.HTTP_200_OK)
+
+
+class JudgeImageDiff(APIView):
+    """
+    Summary:
+        judge image diff exist
+    """
+
+    def get(self, request, *args, **kwargs):
+        img_a = request.query_params.get('imgA')
+        img_b = request.query_params.get('imgB')
+        is_exist = ImageDiff.objects.filter(img_a__name=img_a, img_b__name=img_b)
+        if is_exist:
+            return Response({'is_exist': True, 'id': is_exist.first().id}, status=status.HTTP_200_OK)
+        return Response({'is_exist': False}, status=status.HTTP_200_OK)

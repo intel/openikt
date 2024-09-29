@@ -14,4 +14,5 @@ urlpatterns = [
     path('image_diff_pkg', ImageDiffPackage.as_view(), name='image_diff_pkg'),
     path('pkg_detail', PKGDetail.as_view(), name='pkg_detail'),
     path('pkg_type', PKGTypesView.as_view(), name='pkg_type'),
+    path('diff_exist', JudgeImageDiff.as_view(), name='diff_exist'),
 ]

@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from app_diff.methods import format_resp
+from lib.email import send_email
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -33,7 +34,10 @@ class RegisterView(APIView):
             username=username, email=email, password=password
         )
         user.save()
-
+        send_email(
+            msg=f'Your account: <b>{username}</b> registration is successful!',
+            user_email=email
+        )
         return Response(data=format_resp(data={'msg':'register successfully'}), status=status.HTTP_200_OK)
 
 
