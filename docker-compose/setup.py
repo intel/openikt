@@ -47,9 +47,9 @@ def main():
     parser_install.add_argument('--https-port', type=int, default=443,
                                 help='specify your https port, the default is 443')
     parser_install.add_argument('--cert', type=str, default='ssl/server.crt',
-                                help='specify cert file name in ssl directory (put the cert in the ssl directory)')
+                                help='specify cert file in ssl directory (put the cert in the ssl directory)')
     parser_install.add_argument('--cert-key', type=str, default='ssl/server.key',
-                                help='specify cert private key file name in ssl directory (also put the cert key file in the ssl directory)')
+                                help='specify cert private key file in ssl directory (also put the cert key in the ssl directory)')
     parser_install.add_argument('--nginx-servername', type=str, action='store',
                                 help='specify the nginx server_name (required if --enable-https is enabled)')
 

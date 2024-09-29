@@ -1,4 +1,4 @@
-# Docker compose setup：
+# Docker Compose setup：
 
 The setup.py script will set up a compose project named docker-compose, which  
 includs three services, named openikt-db, openikt-server and openikt-web.  
@@ -48,22 +48,17 @@ docker-compose/
    git clone https://github.com/intel/openikt.git  
   
 2. There are some default behaviors of the setup.py script that you should be  
-   aware of in advance. Please refer to './setup.py install --help' for more information  
+   aware of in advance. Please refer to './setup.py install --help' for more  
+   information.  
   
    The example installation command:    
    ./setup.py install --port 80 --data-dir ~/app/postgres --web-log-dir ~/app/logs/web \  
                       --server-log-dir ~/app/logs/server  
   
-   enable https and put the cert, private key file in ssl directory:  
-   ./setup.py install --port 80 --data-dir ~/app/postgres --web-log-dir ~/app/logs/web \  
-                      --server-log-dir ~/app/logs/server --enable-https \  
-                      --nginx-servername www.mydomain.com --cert ssl/mycert.crt \  
-                      --cert-key ssl/mycert.key  
-  
 3. Access the service at:    
    http://host-ip   
-   or  
-   https://www.mydomain.com  
+
+   Https access is supported, for more details, refer to: './setup.py install --help'.
   
 ## Update service/container  
   
@@ -75,7 +70,7 @@ Compose commands directly.
 The example update command:  
 ./setup.py update --service openikt-web  
   
-For more information, refer to: './setup.py update --help  
+For more information, refer to: './setup.py update --help'  
   
 ## Uninstall service  
   
