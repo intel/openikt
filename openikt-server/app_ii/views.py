@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import requests
+from django.http import JsonResponse
 from .serializers import *
 from .models import *
 from django.db.models import Q
@@ -165,6 +167,32 @@ class ImageNameVerify(APIView):
         if os_image:
             return Response(False, status=status.HTTP_200_OK)
         return Response(True, status=status.HTTP_200_OK)
+
+
+class ImageUrlVerify(APIView):
+    """
+    Summary:
+        Check if Content-Type is a valid image type
+    """
+
+    def get(self, request, *args, **kwargs):
+        url = request.query_params.get('url')
+
+        if not url:
+            return JsonResponse({'valid': False, 'error': 'No URL provided'}, status=400)
+
+        try:
+            response = requests.head(url)
+            content_type = response.headers.get('Content-Type', '')
+
+            valid_types = ['application/x-iso9660-image', 'application/octet-stream',
+                           'application/x-diskimage', 'application/x-raw-disk-image']
+
+            is_valid = any(content_type.startswith(valid) for valid in valid_types)
+            return JsonResponse({'valid': is_valid})
+
+        except requests.RequestException as e:
+            return JsonResponse({'valid': False, 'error': str(e)}, status=200)
 
 
 class ImageDiffPackage(APIView):
