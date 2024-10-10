@@ -20,7 +20,7 @@ sh==2.0.6
 smmap==5.0.1
 sqlparse==0.5.0
 typing-extensions==4.10.0
-urllib3==2.2.1
+urllib3==2.2.2
 wrapt==1.16.0
 uwsgi==2.0.24
 xlsxwriter==3.2.0
