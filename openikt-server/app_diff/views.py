@@ -12,6 +12,7 @@ from .methods import email_display
 from lib.ourxlsx import NewXlsx
 from io import BytesIO
 from django.http import HttpResponse
+from lib.jenkinswrapper import JenkinsWrapper
 
 
 class GetRepositoryView(APIView):
@@ -199,8 +200,8 @@ class QuiltDiffDetailView(APIView):
         ref_a = request.data.get('refA')
         ref_b = request.data.get('refB')
         rdps = RangeDiffPatch.objects.select_related(
-            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_NEW).order_by('pr')
-        
+            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_REMOVED).order_by('pr')
+        ref_a_b = {"ref A": ref_a, "ref B": ref_b}
         # create excel
         output = BytesIO()
         wb = NewXlsx(
@@ -226,13 +227,31 @@ class QuiltDiffDetailView(APIView):
              'bg_color': '#F0F8FF',
              }
         )
-        # crete sheet only A
+        # create sheet Explanation
+        explanat = wb.add_worksheet(name='Summary')
+        explant_sheet_tree = explanat.title_tree
+        explain = explant_sheet_tree.add_child(
+            nid='Summary',
+            data=wb.get_tree_node_format_data(
+                style=title_style,
+                width=80,
+                abs_width=True
+            )
+        )
+        for k, v in ref_a_b.items():
+            explain.data['column_cells_list'].append(
+                wb.get_tree_node_format_cell(
+                    value=k + ":" + v
+                    )
+                )
+        wb.write_worksheet(explanat)
+        # create sheet only A
         only_sheet_a = wb.add_worksheet(name='only ref A')
         self.write_data_excel(only_sheet_a, wb, title_style, rdps, both=False)
         
         # create sheet only b
         rdps = RangeDiffPatch.objects.select_related(
-            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_REMOVED).order_by('pr')
+            'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_NEW).order_by('pr')
         only_sheet_b = wb.add_worksheet(name='only ref B')
         self.write_data_excel(only_sheet_b, wb, title_style, rdps, both=False)
         
@@ -253,7 +272,7 @@ class QuiltDiffDetailView(APIView):
         rdps = RangeDiffPatch.objects.select_related(
             'cmt_a', 'cmt_b').filter(rangediff_id=qd_id, patchtype=RangeDiffPatch.TYPE_CMCO).order_by('pr')
         if rdps:
-            both_chanege_sheet = wb.add_worksheet(name='both change only')
+            both_chanege_sheet = wb.add_worksheet(name='commit message change only')
             self.write_data_excel(both_chanege_sheet, wb, title_style, rdps, both=False)
         
         wb.close()
@@ -418,3 +437,65 @@ class RangeDiffPatchTypeView(APIView):
             {"label": i[1], "value": i[0]} for i in RangeDiffPatch.TYPE_CHOICES
         ]
         return Response(data=format_resp(data=diffPatchType), status=status.HTTP_200_OK)
+
+
+class RangeDiffTypeView(APIView):
+    """
+    Summary:
+        get quilt diff  type api view
+
+    Return:
+        the list of quilt diff type data
+    """
+
+    def get(self, request):
+        """get diff patch type api"""
+        diffType = [
+            {"label": i[1], "value": i[0]} for i in RangeDiff.TYPE_CHOICES
+        ]
+        return Response(data=format_resp(data=diffType), status=status.HTTP_200_OK)
+
+
+class TriggerDiffJob(APIView):
+    """
+    Summary:
+        trigger create diff job
+    """
+
+    @staticmethod
+    def extra_repo(repo):
+        protocol, rep = repo.split('://')
+        first_index = rep.find('/')
+        last_index = rep.rfind('/')
+        host = rep[0:first_index]
+        project = rep[first_index + 1:]
+        name = rep[last_index + 1:]
+
+        is_exist = Repository.objects.filter(project=project)
+        if not is_exist:
+            logging.info('create new repo to DB: %s' % repo)
+            repo_obj = Repository.objects.create(
+                protocol = protocol,
+                host = host,
+                project = project,
+                name = name
+            )
+            repo_obj.save()
+        return None
+
+    def post(self, request, *args, **kwargs):
+        form = request.data
+        data = {
+            'repo_from': form['repositoryFrom'],
+            'repo_to': form['repositoryTo'],
+            'ref_from': form['refFrom'],
+            'ref_to': form['refTo'],
+            'base_from': form['baseFrom'],
+            'base_to': form['baseTo'],
+            'diff_type': form['diffType']
+        }
+        self.extra_repo(form['repositoryFrom'])
+        self.extra_repo(form['repositoryTo'])
+        job = JenkinsWrapper(server_name='cje_jenkins')
+        job.trigger_job(name='create-diff', group='OpenIKT', data=data)
+        return Response(data=format_resp(data={}), status=status.HTTP_200_OK)

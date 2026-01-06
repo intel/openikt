@@ -1,0 +1,109 @@
+pipeline {
+    agent {
+        label 'image-inspector'
+    }
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '30', numToKeepStr: '10')
+    }
+    environment {
+        service_name='openikt'
+        tag='imageinspector'
+        pypath='/opt/openikt-server'
+        db_name='openikt'
+        db_user='user'
+        db_pass='mypass'
+        db_host='my-db-host'
+        db_port='5432'
+        all_proxy='http://my-proxy'
+    }
+    parameters {
+        string(name: 'branch', description: 'branch', defaultValue: 'master')
+        string(name: 'img_a', description: '', defaultValue: '')
+        string(name: 'img_b', description: '', defaultValue: '')
+        booleanParam(name: 'rebuildImage', description: 'rebuild docker image', defaultValue: false)
+	}
+	triggers {
+        GenericTrigger(
+            genericVariables: [
+                [key: 'img_a', value: '$.img_a'],
+                [key: 'img_b', value: '$.img_b']
+            ],
+            causeString: 'Triggered on $.img_a $.img_b'
+        )
+	}
+    stages {
+        stage('git clone') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.branch}"]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/intel/openikt.git',
+                        credentialsId: 'xxxxxxxxxxxxxxxxxxxxxxxx'
+                    ]],
+                    extensions: [
+                        [$class: 'RelativeTargetDirectory', relativeTargetDir: 'openikt']
+                    ]
+                ])
+                script {
+                    sh "pwd; ls -l ."
+                }
+            }
+        }
+        stage('build image') {
+            when { expression { return ( params.rebuildImage==true)} }
+            steps{
+                script{
+                    echo "tag: ${tag}"
+                    sh '''cd openikt
+                          docker build -f docker-compose/Dockerfile.server --build-arg https_proxy=${all_proxy} --build-arg http_proxy=${all_proxy} -t openikt:${tag} .
+                    '''
+                }
+            }
+        }
+        stage('import image a') {
+            steps {
+                script {
+                    sh '''cp openikt/openikt-server/settings/settings.py.sample openikt/openikt-server/settings/settings.py
+                          docker run --privileged --rm \
+                          -v $(pwd)/openikt/openikt-server:/opt/openikt-server \
+                          -e DATABASE_NAME=${db_name} -e DATABASE_USER=${db_user} -e DATABASE_PASSWORD=${db_pass} \
+                          -e DATABASE_HOST=${db_host} -e DATABASE_PORT=${db_port} -e PYTHONPATH=${pypath} \
+                          -e https_proxy=${all_proxy} -e http_proxy=${all_proxy} \
+                          openikt:${tag} bash -c "cd openikt-server/app_ii; ./image_import.py -i '${img_a}'"
+                    '''
+                }
+                //input message: "stop"
+            }
+        }
+        stage('import image b') {
+            steps {
+                script {
+                    sh '''cp openikt/openikt-server/settings/settings.py.sample openikt/openikt-server/settings/settings.py
+                          docker run --privileged --rm \
+                          -v $(pwd)/openikt/openikt-server:/opt/openikt-server \
+                          -e DATABASE_NAME=${db_name} -e DATABASE_USER=${db_user} -e DATABASE_PASSWORD=${db_pass} \
+                          -e DATABASE_HOST=${db_host} -e DATABASE_PORT=${db_port} -e PYTHONPATH=${pypath} \
+                          -e https_proxy=${all_proxy} -e http_proxy=${all_proxy} \
+                          openikt:${tag} bash -c "cd openikt-server/app_ii; ./image_import.py -i '${img_b}'"
+                    '''
+                }
+                //input message: "stop"
+            }
+        }
+        stage('diff') {
+            steps {
+                script {
+                    sh '''cp openikt/openikt-server/settings/settings.py.sample openikt/openikt-server/settings/settings.py
+                          docker run --privileged --rm \
+                          -v $(pwd)/openikt/openikt-server:/opt/openikt-server \
+                          -e DATABASE_NAME=${db_name} -e DATABASE_USER=${db_user} -e DATABASE_PASSWORD=${db_pass} \
+                          -e DATABASE_HOST=${db_host} -e DATABASE_PORT=${db_port} -e PYTHONPATH=${pypath} \
+                          -e WORKSPACE="/opt" \
+                          openikt:${tag} bash -c "cd openikt-server/app_ii; ./image_diff.py -a '${img_a}' -b '${img_b}'"
+                    '''
+                }
+            }
+        }
+    }
+}

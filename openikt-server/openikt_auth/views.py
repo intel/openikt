@@ -7,10 +7,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from app_diff.methods import format_resp
+from lib.email import send_email
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class RegisterView(View):
+class RegisterView(APIView):
     """user register view"""
 
     def post(self, request):
@@ -22,19 +27,22 @@ class RegisterView(View):
 
         # check user exists
         if User.objects.filter(username=username).exists():
-            return JsonResponse({"error": "Username already exists"}, status=400)
+            return Response(data=format_resp(data={"error": "Username already exists"}), status=status.HTTP_200_OK)
 
         # create new user
         user = User.objects.create_user(
             username=username, email=email, password=password
         )
         user.save()
-
-        return JsonResponse({"message": "User registered successfully"}, status=201)
+        send_email(
+            msg=f'Your account: <b>{username}</b> registration is successful!',
+            user_email=email
+        )
+        return Response(data=format_resp(data={'msg':'register successfully'}), status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class LoginView(View):
+class LoginView(APIView):
     """user login view"""
 
     def post(self, request):
@@ -47,12 +55,16 @@ class LoginView(View):
 
         if user is not None:
             login(request, user)
-            return JsonResponse({"message": "Login successful"}, status=200)
+            res =  Response(data=format_resp(data={'msg':'login successfully'}), status=status.HTTP_200_OK)
+            res.set_cookie(key='username', value=username.capitalize(), max_age=1209600)
+            return res
         else:
-            return JsonResponse({"error": "Invalid credentials"}, status=400)
+            return Response(data=format_resp(data={'error':'login failed'}), status=status.HTTP_200_OK)
 
-
-def logoutView(request):
-    """user logout view"""
-    logout(request)
-    return JsonResponse({"message": "Logout successful"}, status=200)
+class LogoutView(APIView):
+    def get(self, request):
+        """user logout view"""
+        logout(request)
+        res = Response(data=format_resp(data={'msg':'logout successfully'}), status=status.HTTP_200_OK)
+        res.delete_cookie(key='username')
+        return res

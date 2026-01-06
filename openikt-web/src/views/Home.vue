@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <el-carousel :interval="5000" arrow="always">
-      <el-carousel-item @click.native="handleClickBanner('/openikt')">
+      <el-carousel-item @click.native="handleClickBanner('/openikt/')">
         <div class="xdd xdd1"></div>
       </el-carousel-item>
 

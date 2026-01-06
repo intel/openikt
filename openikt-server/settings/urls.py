@@ -21,4 +21,5 @@ urlpatterns = [
     path('openikt/admin/', admin.site.urls),
     path('openikt/auth/', include('openikt_auth.urls')),
     path('openikt/app_diff/', include('app_diff.urls')),
+    path('openikt/app_ii/', include('app_ii.urls')),
 ]

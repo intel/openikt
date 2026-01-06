@@ -1,0 +1,7 @@
+*.pyc
+*/__pychache__/*
+openikt-server/settings/settings.py
+job
+*.swp
+logs/*
+.idea/*

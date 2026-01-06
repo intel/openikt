@@ -32,6 +32,9 @@ class Repository(Model):
     external = BooleanField(default=False)
     name = CharField(max_length=64, null=True, blank=True)
 
+    def __str__(self) -> str:
+        return "%s://%s/%s" % (self.protocol, self.host, self.project)
+
     def url(self):
         '''
         Returns full URL for the repository
@@ -144,8 +147,8 @@ class RangeDiff(Model):
     TYPE_QUILTDIFF = 2
     TYPE_QUILT = 3
     TYPE_CHOICES = (
-        (TYPE_GITDIFF, "git range diff"),
-        (TYPE_QUILTDIFF, "quilt diff"),
+        (TYPE_GITDIFF, "rangediff"),
+        (TYPE_QUILTDIFF, "quiltdiff"),
         (TYPE_QUILT, "quit"),
     )
     ref_a = CharField(max_length=256)

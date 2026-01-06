@@ -1,3 +1,9 @@
+# DISCONTINUATION OF PROJECT
+This project will no longer be maintained by Intel.  
+This project has been identified as having known security escapes.  
+Intel has ceased development and contributions including, but not limited to, maintenance, bug fixes, new releases, or updates, to this project.  
+Intel no longer accepts patches to this project.  
+
 # Overview
 
 This is a repository that contains all the code for OpenIKT(Open Inter kernel Tools). OpenIKT is a batch of utility tools, used to track the kernel patch status among multi open-source projects. it is developed by the Django and VUE. 
@@ -12,7 +18,7 @@ This is a repository that contains all the code for OpenIKT(Open Inter kernel To
 
 > Ubuntu 20.04 default install python3.8. if you didn't have, please visit: https://www.python.org/ install.
 
-​	Recommended to use a virtual environment
+	Recommended to use a virtual environment
 
 ```shell
 # Install dependency packages
@@ -166,7 +172,13 @@ server {
 ```
 
 
+# Setup with Docker Compose
 
+You can setup or update Openikt services with docker-compose/setup.py,
+please refer [docker-compose/README.md](docker-compose/README.md) for more information.
+
+setup.py can't deploy the app app_ii completely yet, there's no Jenkins server deployment, therefore Image Comparison will not work correctly.
+You can deploy Jenkins manually and create a pipeline job named image-inspector with [openikt-server/app_ii/jenkinsfile](openikt-server/app_ii/jenkinsfile).
 
 
 # Document 

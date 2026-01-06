@@ -1,0 +1,26 @@
+FROM public.ecr.aws/docker/library/python:3.10.12
+
+ARG https_proxy
+ARG http_proxy
+ARG socks_proxy
+ARG no_proxy
+ENV LANG=en_US.UTF-8
+ENV https_proxy=${https_proxy}
+ENV http_proxy=${http_proxy}
+ENV socks_proxy=${socks_proxy}
+ENV no_proxy=${no_proxy}
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/Shanghai" > /etc/timezone && \
+echo "export LS_OPTIONS='--color=auto'" >> /root/.bashrc && echo "alias ls='ls \$LS_OPTIONS'" >> /root/.bashrc && echo "alias ll='ls \$LS_OPTIONS -l'" >> /root/.bashrc && \
+ apt update && \
+apt-get install -y libsasl2-dev python3-dev libldap2-dev libssl-dev net-tools vim iputils-ping && pip install django==4.2 psycopg2==2.9.9
+
+WORKDIR /opt
+ADD openikt-server/requirements.txt ./
+RUN pip install -r ./requirements.txt
+ADD openikt-server ./openikt-server/
+ADD docker-compose/uwsgi.ini ./openikt-server/
+ADD openikt-server/settings/settings.py.sample ./openikt-server/settings/settings.py
+ENV https_proxy=
+ENV http_proxy=
+
+CMD []
