@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from app_diff.methods import format_resp
 from lib.email import send_email
@@ -17,6 +18,8 @@ from lib.email import send_email
 @method_decorator(csrf_exempt, name="dispatch")
 class RegisterView(APIView):
     """user register view"""
+
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """register api"""
@@ -44,6 +47,8 @@ class RegisterView(APIView):
 @method_decorator(csrf_exempt, name="dispatch")
 class LoginView(APIView):
     """user login view"""
+
+    permission_classes = [AllowAny]
 
     def post(self, request):
         """login api"""

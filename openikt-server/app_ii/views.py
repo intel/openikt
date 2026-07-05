@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -134,10 +135,23 @@ class ImportImageView(APIView):
                 desc = values.get('desc'),
             )
             if raw_data:
+                # Only accept a bare file name; strip any directory component so
+                # that absolute paths or "../" sequences cannot read files
+                # outside raw_data/.
+                image_name = os.path.basename(raw_data)
+                if image_name in ('', '.', '..'):
+                    raise ValueError('invalid rawData file name')
+
                 my_dir = os.path.dirname(os.path.abspath(__file__))
-                raw_data_patch = 'raw_data/'
-                image_name = raw_data
-                file_name = os.path.join(my_dir, raw_data_patch, image_name)
+                raw_data_dir = os.path.join(my_dir, 'raw_data')
+                file_name = os.path.join(raw_data_dir, image_name)
+
+                # Defense in depth: ensure the resolved path stays inside raw_data/.
+                real_raw_data_dir = os.path.realpath(raw_data_dir)
+                real_file_name = os.path.realpath(file_name)
+                if os.path.commonpath([real_raw_data_dir, real_file_name]) != real_raw_data_dir:
+                    raise ValueError('invalid rawData file name')
+
                 with open(file_name, 'r') as f:
                     os_img_obj.raw_data = f.read()
             else:
@@ -155,11 +169,35 @@ class RawDataUploadView(APIView):
     """
 
     def post(self, request, *args, **kwargs):
+        req_user = request.user
+        if isinstance(req_user, AnonymousUser):
+            return Response(data=format_resp(code=20001, msg='User not logged in'),
+                            status=status.HTTP_401_UNAUTHORIZED)
+
         html_file = request.FILES.get('file')
         image_name = request.data.get('imageName')
+        if not html_file or not image_name:
+            return Response(data=format_resp(code=20002, msg='file and imageName are required'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Only accept a bare file name; strip any directory component so that
+        # absolute paths or "../" traversal sequences cannot escape raw_data/.
+        image_name = os.path.basename(image_name)
+        if image_name in ('', '.', '..'):
+            return Response(data=format_resp(code=20003, msg='invalid imageName'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
         my_dir = os.path.dirname(os.path.abspath(__file__))
-        raw_data_patch = 'raw_data/'
-        file_name = os.path.join(my_dir, raw_data_patch, image_name)
+        raw_data_dir = os.path.join(my_dir, 'raw_data')
+        file_name = os.path.join(raw_data_dir, image_name)
+
+        # Defense in depth: ensure the resolved path stays inside raw_data/.
+        real_raw_data_dir = os.path.realpath(raw_data_dir)
+        real_file_name = os.path.realpath(file_name)
+        if os.path.commonpath([real_raw_data_dir, real_file_name]) != real_raw_data_dir:
+            return Response(data=format_resp(code=20003, msg='invalid imageName'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
         with open(file_name, 'wb+') as destination:
             for chunk in html_file.chunks():
                 destination.write(chunk)

@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import Cookies from 'js-cookie'
 
 import BasicLayout from '@/components/layouts'
 
@@ -9,6 +10,10 @@ const routes = [
   {
     path: '/welcome',
     name: 'welcome',
+    meta: {
+      // Login / register page must be reachable without authentication.
+      public: true
+    },
     component: () => import('../views/account-management/AccountManagement.vue')
   },
   {
@@ -88,7 +93,22 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   const title = to.meta.title
   document.title = title ? title : 'OpenIKT'
-  next()
+
+  // Auth guard: every route except those flagged `meta.public` requires a
+  // logged-in user. The backend enforces IsAuthenticated globally, so
+  // redirect anonymous users to the login page instead of letting the page
+  // load and fire API calls that would only return 403.
+  const isPublic = to.matched.some((record) => record.meta && record.meta.public)
+  const isLoggedIn = !!Cookies.get('username')
+
+  if (!isPublic && !isLoggedIn) {
+    next({ name: 'welcome' })
+  } else if (isPublic && isLoggedIn && to.name === 'welcome') {
+    // Already authenticated users have no reason to see the login page.
+    next({ path: '/' })
+  } else {
+    next()
+  }
 })
 
 export default router
